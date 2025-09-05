@@ -203,11 +203,16 @@ class WatermarkRemover {
 
         try {
             const url = document.getElementById('videoUrl').value.trim();
+            console.log('开始处理视频:', url);
+            
             const result = await this.callAPI(url);
+            console.log('API调用结果:', result);
             
             if (result.success) {
+                console.log('解析成功，显示结果:', result.data);
                 this.showResult(result.data);
             } else {
+                console.log('解析失败:', result.message);
                 this.showError(result.message || '解析失败，请重试');
             }
         } catch (error) {
@@ -376,6 +381,9 @@ class WatermarkRemover {
         const videoAuthor = document.getElementById('videoAuthor');
         const downloadBtn = document.getElementById('downloadBtn');
 
+        // 存储当前视频数据
+        this.currentVideoData = data;
+
         videoTitle.textContent = data.title;
         videoAuthor.textContent = `作者: ${data.author}`;
         
@@ -506,7 +514,7 @@ class WatermarkRemover {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    new WatermarkRemover();
+    window.watermarkRemover = new WatermarkRemover();
     
     // 添加下载提示动画样式
     const style = document.createElement('style');
