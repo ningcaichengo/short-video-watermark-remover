@@ -165,15 +165,18 @@ body {
     bottom: 0;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    animation: fadeIn 0.3s ease;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
 }
 
 .verify-modal.show {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
 }
 
 .modal-content {
@@ -183,7 +186,12 @@ body {
     width: 90%;
     max-width: 320px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    animation: slideUp 0.3s ease;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.verify-modal.show .modal-content {
+    transform: scale(1);
 }
 
 .modal-header {
@@ -340,11 +348,12 @@ body {
 }
 
 .download-actions {
-    text-align: center;
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
 }
 
 .download-btn {
-    width: 100%;
     height: 50px;
     background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
     border: none;
@@ -360,13 +369,77 @@ body {
     transition: all 0.3s ease;
 }
 
+.guide-btn {
+    height: 44px;
+    background: rgba(0, 122, 255, 0.1);
+    border: 1px solid #007aff;
+    border-radius: 12px;
+    color: #007aff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
 .download-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(52, 199, 89, 0.3);
 }
 
-.download-btn:active {
+.guide-btn:hover {
+    background: rgba(0, 122, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+}
+
+.download-btn:active,
+.guide-btn:active {
     transform: translateY(0);
+}
+
+/* Toast 提示样式 */
+.download-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3000;
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+    transition: all 0.3s ease;
+}
+
+.download-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-content {
+    background: rgba(52, 199, 89, 0.95);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 90vw;
+}
+
+.toast-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
 }
 
 /* 错误提示 */
@@ -419,16 +492,6 @@ body {
     to { opacity: 1; }
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
 @keyframes fadeInUp {
     from {
@@ -504,6 +567,12 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.download-guide-modal.show .modal-overlay {
+    opacity: 1;
 }
 
 .download-guide-modal .modal-content {
@@ -514,7 +583,12 @@ body {
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.3s ease;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.download-guide-modal.show .modal-content {
+    transform: scale(1);
 }
 
 .download-guide-modal .modal-header {
@@ -645,6 +719,90 @@ body {
     margin: 0 0 12px;
     color: #86868b;
     font-size: 14px;
+}
+
+.recommended-apps {
+    margin: 20px 0;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e5e5e7;
+}
+
+.recommended-apps h4 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.app-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.app-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e5e7;
+}
+
+.app-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.app-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1d1d1f;
+}
+
+.app-desc {
+    font-size: 12px;
+    color: #86868b;
+}
+
+.app-download {
+    padding: 6px 16px;
+    background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.app-download:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+/* Android用户才显示Android应用 */
+.android-only {
+    display: none;
+}
+
+@media screen and (max-width: 480px) {
+    .app-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .app-download {
+        align-self: flex-end;
+    }
 }
 
 .quick-actions {

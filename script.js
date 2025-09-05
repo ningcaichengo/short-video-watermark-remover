@@ -14,12 +14,16 @@ class WatermarkRemover {
         const urlInput = document.getElementById('videoUrl');
         const removeBtn = document.getElementById('removeBtn');
         const downloadBtn = document.getElementById('downloadBtn');
+        const guideBtn = document.getElementById('guideBtn');
         const closeBtn = document.querySelector('.close-btn');
 
         urlInput.addEventListener('input', this.handleUrlInput.bind(this));
         urlInput.addEventListener('paste', this.handleUrlPaste.bind(this));
         removeBtn.addEventListener('click', this.handleRemoveClick.bind(this));
         downloadBtn.addEventListener('click', this.handleDownload.bind(this));
+        if (guideBtn) {
+            guideBtn.addEventListener('click', this.handleGuideClick.bind(this));
+        }
         closeBtn.addEventListener('click', this.closeVerifyModal.bind(this));
 
         // 阻止表单默认提交
@@ -449,27 +453,36 @@ class WatermarkRemover {
             const downloadBtn = document.getElementById('downloadBtn');
             const originalText = downloadBtn.querySelector('span').textContent;
             
-            downloadBtn.querySelector('span').textContent = '准备下载...';
+            downloadBtn.querySelector('span').textContent = '准备中...';
             downloadBtn.disabled = true;
 
             // 检测设备类型
             const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            // 由于403权限问题，改用代理下载或直接复制链接的方式
-            if (isMobile) {
-                // 移动端：显示下载指南
-                this.showMobileDownloadGuide(url);
-            } else {
-                // 桌面端：尝试代理下载或复制链接
-                this.showDesktopDownloadOptions(url, filename);
-            }
+            // 先尝试获取直接下载链接
+            const directDownloadUrl = await this.getDirectDownloadLink(url);
+            const finalUrl = directDownloadUrl || url;
+            
+            // 一键复制 + 自动打开
+            await this.copyToClipboard(finalUrl);
+            window.open(finalUrl, '_blank');
+            
+            // 显示成功提示
+            this.showDownloadToast(isMobile ? '链接已复制，视频已打开。建议使用支持下载的浏览器APP' : '链接已复制，视频已打开。请右键选择"另存为"');
             
             downloadBtn.querySelector('span').textContent = originalText;
             downloadBtn.disabled = false;
 
         } catch (error) {
             console.error('下载出错:', error);
-            this.showError('下载准备失败，请重试');
+            
+            // 降级到详细指南
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                this.showMobileDownloadGuide(url);
+            } else {
+                this.showDesktopDownloadOptions(url, filename);
+            }
             
             const downloadBtn = document.getElementById('downloadBtn');
             downloadBtn.querySelector('span').textContent = '下载无水印视频';
@@ -510,8 +523,34 @@ class WatermarkRemover {
                             <div class="step">
                                 <div class="step-number">3</div>
                                 <div class="step-content">
-                                    <p><strong>长按视频保存</strong></p>
-                                    <p class="step-desc">视频播放后，长按选择"保存视频"</p>
+                                    <p><strong>保存视频</strong></p>
+                                    <p class="step-desc">长按视频选择"保存到相册"，或使用下方推荐的专业下载APP</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="recommended-apps">
+                            <h4>📱 推荐下载APP（成功率更高）</h4>
+                            <div class="app-list">
+                                <div class="app-item">
+                                    <div class="app-info">
+                                        <span class="app-name">Documents by Readdle</span>
+                                        <span class="app-desc">支持视频下载的文件管理器</span>
+                                    </div>
+                                    <button onclick="window.open('https://apps.apple.com/app/documents-by-readdle/id364901807', '_blank')" class="app-download">下载</button>
+                                </div>
+                                <div class="app-item">
+                                    <div class="app-info">
+                                        <span class="app-name">Alook浏览器</span>
+                                        <span class="app-desc">自带视频下载功能的浏览器</span>
+                                    </div>
+                                    <button onclick="window.open('https://apps.apple.com/app/alook-browser/id1261944766', '_blank')" class="app-download">下载</button>
+                                </div>
+                                <div class="app-item android-only">
+                                    <div class="app-info">
+                                        <span class="app-name">ADM下载器</span>
+                                        <span class="app-desc">Android专业下载工具</span>
+                                    </div>
+                                    <button onclick="window.open('https://play.google.com/store/apps/details?id=com.dv.adm', '_blank')" class="app-download">下载</button>
                                 </div>
                             </div>
                         </div>
@@ -526,6 +565,15 @@ class WatermarkRemover {
         `;
 
         document.body.appendChild(modal);
+        
+        // Android设备显示Android专用APP
+        if (/Android/i.test(navigator.userAgent)) {
+            const androidApps = modal.querySelectorAll('.android-only');
+            androidApps.forEach(app => app.style.display = 'flex');
+        }
+        
+        // 添加显示动画
+        setTimeout(() => modal.classList.add('show'), 10);
         
         // 自动选中URL输入框
         setTimeout(() => {
@@ -569,6 +617,115 @@ class WatermarkRemover {
         `;
 
         document.body.appendChild(modal);
+        
+        // 添加显示动画
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    async getDirectDownloadLink(url) {
+        // 尝试获取直接下载链接
+        try {
+            // 方法1: 检查当前API是否有直接下载链接字段
+            if (this.currentVideoData && this.currentVideoData.directUrl) {
+                console.log('使用API提供的直接下载链接');
+                return this.currentVideoData.directUrl;
+            }
+            
+            // 方法2: 尝试修改URL参数获取更适合下载的格式
+            const modifiedUrl = this.modifyUrlForDownload(url);
+            if (modifiedUrl !== url) {
+                console.log('使用修改参数后的下载链接');
+                return modifiedUrl;
+            }
+            
+            // 方法3: 使用第三方转换服务（暂时注释，避免额外依赖）
+            // const convertedUrl = await this.convertToDirectDownload(url);
+            // if (convertedUrl) return convertedUrl;
+            
+            return null; // 无法获取直接下载链接
+        } catch (error) {
+            console.error('获取直接下载链接失败:', error);
+            return null;
+        }
+    }
+
+    modifyUrlForDownload(url) {
+        // 尝试修改URL参数来获取更适合下载的链接
+        try {
+            const urlObj = new URL(url);
+            
+            // 移除可能影响下载的参数
+            const paramsToRemove = ['dy_q', 'feature_id', 'l'];
+            paramsToRemove.forEach(param => urlObj.searchParams.delete(param));
+            
+            // 添加可能有助于下载的参数
+            urlObj.searchParams.set('download', '1');
+            urlObj.searchParams.set('dl', '1');
+            
+            const modifiedUrl = urlObj.toString();
+            console.log('原始URL:', url);
+            console.log('修改URL:', modifiedUrl);
+            
+            return modifiedUrl;
+        } catch (error) {
+            console.error('URL修改失败:', error);
+            return url;
+        }
+    }
+
+    async copyToClipboard(text) {
+        // 复制文本到剪贴板
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                // 现代浏览器API
+                await navigator.clipboard.writeText(text);
+                console.log('使用现代API复制成功');
+            } else {
+                // 兼容旧浏览器
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (!successful) {
+                    throw new Error('execCommand复制失败');
+                }
+                console.log('使用兼容API复制成功');
+            }
+        } catch (error) {
+            console.error('复制失败:', error);
+            throw error;
+        }
+    }
+
+    showDownloadToast(message) {
+        // 显示下载成功的toast提示
+        const toast = document.createElement('div');
+        toast.className = 'download-toast';
+        toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-icon">✅</div>
+                <div class="toast-message">${message}</div>
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+        
+        // 显示动画
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        // 自动消失
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 4000);
     }
 
     showDownloadTip(isMobile) {
@@ -625,6 +782,18 @@ class WatermarkRemover {
         
         if (downloadUrl) {
             this.downloadVideo(downloadUrl, title);
+        }
+    }
+
+    handleGuideClick() {
+        if (!this.currentVideoData?.downloadUrl) return;
+        
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            this.showMobileDownloadGuide(this.currentVideoData.downloadUrl);
+        } else {
+            this.showDesktopDownloadOptions(this.currentVideoData.downloadUrl, this.currentVideoData.title);
         }
     }
 }
