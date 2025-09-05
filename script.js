@@ -463,9 +463,9 @@ class WatermarkRemover {
             const directDownloadUrl = await this.getDirectDownloadLink(url);
             const finalUrl = directDownloadUrl || url;
             
-            // 一键复制 + 自动打开
+            // 一键复制 + 无Referer打开
             await this.copyToClipboard(finalUrl);
-            window.open(finalUrl, '_blank');
+            this.openWithoutReferer(finalUrl);
             
             // 显示成功提示
             this.showDownloadToast(isMobile ? '链接已复制，视频已打开。建议使用支持下载的浏览器APP' : '链接已复制，视频已打开。请右键选择"另存为"');
@@ -555,7 +555,7 @@ class WatermarkRemover {
                             </div>
                         </div>
                         <div class="quick-actions">
-                            <button class="action-btn primary" onclick="window.open('${url}', '_blank')">
+                            <button class="action-btn primary" onclick="this.closest('.download-guide-modal').dispatchEvent(new CustomEvent('openVideo', {detail: '${url}'}))">
                                 🚀 直接打开视频
                             </button>
                         </div>
@@ -565,6 +565,11 @@ class WatermarkRemover {
         `;
 
         document.body.appendChild(modal);
+        
+        // 添加无Referer打开视频事件监听
+        modal.addEventListener('openVideo', (e) => {
+            this.openWithoutReferer(e.detail);
+        });
         
         // Android设备显示Android专用APP
         if (/Android/i.test(navigator.userAgent)) {
@@ -598,7 +603,7 @@ class WatermarkRemover {
                             <div class="option">
                                 <h4>方法一：右键保存</h4>
                                 <p>点击下方按钮打开视频，然后右键选择"另存为"</p>
-                                <button class="action-btn primary" onclick="window.open('${url}', '_blank')">
+                                <button class="action-btn primary" onclick="this.closest('.download-guide-modal').dispatchEvent(new CustomEvent('openVideo', {detail: '${url}'}))">
                                     🎥 打开视频页面
                                 </button>
                             </div>
@@ -617,6 +622,11 @@ class WatermarkRemover {
         `;
 
         document.body.appendChild(modal);
+        
+        // 添加无Referer打开视频事件监听
+        modal.addEventListener('openVideo', (e) => {
+            this.openWithoutReferer(e.detail);
+        });
         
         // 添加显示动画
         setTimeout(() => modal.classList.add('show'), 10);
@@ -726,6 +736,72 @@ class WatermarkRemover {
             toast.classList.remove('show');
             setTimeout(() => document.body.removeChild(toast), 300);
         }, 4000);
+    }
+
+    openWithoutReferer(url) {
+        // 使用多种方法实现无Referer访问，解决防盗链问题
+        try {
+            // 方法1: 创建无Referer的链接元素
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noreferrer noopener';
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log('使用无Referer链接打开视频');
+        } catch (error) {
+            console.error('无Referer打开失败，尝试备用方案:', error);
+            
+            // 方法2: 使用中转页面
+            this.openViaRedirectPage(url);
+        }
+    }
+
+    openViaRedirectPage(url) {
+        // 创建中转页面避免Referer
+        try {
+            const redirectHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>正在跳转...</title>
+                    <meta http-equiv="refresh" content="0;url=${encodeURIComponent(url)}">
+                    <script>
+                        // 清空referrer并跳转
+                        setTimeout(() => {
+                            window.location.replace("${url}");
+                        }, 100);
+                    </script>
+                </head>
+                <body>
+                    <p>正在为您跳转到视频页面...</p>
+                    <p>如果没有自动跳转，请点击：<a href="${url}" target="_blank" rel="noreferrer">这里</a></p>
+                </body>
+                </html>
+            `;
+            
+            const blob = new Blob([redirectHtml], { type: 'text/html' });
+            const redirectUrl = URL.createObjectURL(blob);
+            
+            window.open(redirectUrl, '_blank');
+            
+            // 清理临时URL
+            setTimeout(() => {
+                URL.revokeObjectURL(redirectUrl);
+            }, 5000);
+            
+            console.log('使用中转页面打开视频');
+        } catch (error) {
+            console.error('中转页面方案失败，降级到普通打开:', error);
+            
+            // 方法3: 降级到普通window.open
+            window.open(url, '_blank');
+        }
     }
 
     showDownloadTip(isMobile) {
