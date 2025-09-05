@@ -220,27 +220,90 @@ class WatermarkRemover {
     }
 
     async callAPI(videoUrl) {
+        // 尝试多种方法调用API
+        
+        // 方法1: 使用公开的CORS代理服务
+        const proxyUrls = [
+            'https://api.allorigins.win/raw?url=',
+            'https://cors-anywhere.herokuapp.com/',
+            'https://api.codetabs.com/v1/proxy?quest='
+        ];
+        
         const apiUrl = 'https://api.guijianpan.com/waterRemoveDetail/xxmQsyByAk';
         const params = new URLSearchParams({
             ak: '31f90c09b9ab4d0daa8a6a957f12a021',
             link: videoUrl
         });
-
-        const response = await fetch(`${apiUrl}?${params}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
         
-        if (data.code === 200 && data.data) {
+        const targetUrl = `${apiUrl}?${params}`;
+        
+        // 首先尝试直接调用（可能被CORS阻止）
+        try {
+            const response = await fetch(targetUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                },
+                mode: 'cors'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return this.parseApiResponse(data);
+            }
+        } catch (corsError) {
+            console.log('Direct API call failed, trying proxy methods...');
+        }
+        
+        // 方法2: 尝试CORS代理
+        for (const proxyUrl of proxyUrls) {
+            try {
+                const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return this.parseApiResponse(data);
+                }
+            } catch (error) {
+                console.log(`Proxy ${proxyUrl} failed:`, error);
+                continue;
+            }
+        }
+        
+        // 方法3: 使用JSONP (如果API支持)
+        try {
+            return await this.callAPIWithJSONP(targetUrl);
+        } catch (jsonpError) {
+            console.log('JSONP failed:', jsonpError);
+        }
+        
+        // 所有方法都失败了
+        throw new Error('所有API调用方法都失败了，可能是网络问题或CORS限制');
+    }
+    
+    parseApiResponse(data) {
+        // 处理不同的API响应格式
+        if (data.code === "10000" && data.content) {
+            // 新的响应格式
+            return {
+                success: true,
+                data: {
+                    title: data.content.title || '未知标题',
+                    author: data.content.author || '未知作者',
+                    thumbnail: data.content.cover || '',
+                    downloadUrl: data.content.url || '',
+                    duration: data.content.duration || '',
+                    size: data.content.size || ''
+                }
+            };
+        } else if (data.code === 200 && data.data) {
+            // 旧的响应格式
             return {
                 success: true,
                 data: {
@@ -255,9 +318,40 @@ class WatermarkRemover {
         } else {
             return {
                 success: false,
-                message: data.msg || '解析失败'
+                message: data.msg || data.message || '解析失败'
             };
         }
+    }
+    
+    callAPIWithJSONP(url) {
+        return new Promise((resolve, reject) => {
+            const callbackName = 'jsonp_callback_' + Date.now();
+            const script = document.createElement('script');
+            
+            window[callbackName] = function(data) {
+                document.head.removeChild(script);
+                delete window[callbackName];
+                resolve(data);
+            };
+            
+            script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+            script.onerror = function() {
+                document.head.removeChild(script);
+                delete window[callbackName];
+                reject(new Error('JSONP request failed'));
+            };
+            
+            document.head.appendChild(script);
+            
+            // 超时处理
+            setTimeout(() => {
+                if (window[callbackName]) {
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                    reject(new Error('JSONP request timeout'));
+                }
+            }, 15000);
+        });
     }
 
     setLoadingState(loading) {
