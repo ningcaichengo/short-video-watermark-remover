@@ -42,12 +42,12 @@
 ## 🚀 快速开始
 
 ### 在线使用
-直接访问：[https://your-username.github.io/short-video-watermark-remover](https://your-username.github.io/short-video-watermark-remover)
+直接访问：[https://ningcaichengo.github.io/short-video-watermark-remover](https://ningcaichengo.github.io/short-video-watermark-remover)
 
 ### 本地运行
 ```bash
 # 克隆项目
-git clone https://github.com/your-username/short-video-watermark-remover.git
+git clone https://github.com/ningcaichengo/short-video-watermark-remover.git
 
 # 进入项目目录
 cd short-video-watermark-remover
@@ -120,7 +120,7 @@ git commit -m "初始化短视频去水印项目"
 2. **推送到GitHub**
 ```bash
 # 添加远程仓库
-git remote add origin https://github.com/your-username/short-video-watermark-remover.git
+git remote add origin https://github.com/ningcaichengo/short-video-watermark-remover.git
 git branch -M main
 git push -u origin main
 ```
@@ -133,7 +133,7 @@ git push -u origin main
 - 保存设置
 
 4. **访问网站**
-等待几分钟后，访问：`https://your-username.github.io/short-video-watermark-remover`
+等待几分钟后，访问：`https://ningcaichengo.github.io/short-video-watermark-remover`
 
 ## 📱 移动端优化
 
