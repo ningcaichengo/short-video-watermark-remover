@@ -481,3 +481,233 @@ body {
         font-size: 16px;
     }
 }
+
+/* 下载指南弹窗样式 */
+.download-guide-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.download-guide-modal .modal-content {
+    background: white;
+    border-radius: 16px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+}
+
+.download-guide-modal .modal-header {
+    padding: 20px 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 0;
+}
+
+.download-guide-modal .modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.download-guide-modal .modal-body {
+    padding: 20px;
+}
+
+.download-steps {
+    margin-bottom: 20px;
+}
+
+.step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content p {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.step-desc {
+    color: #86868b !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+.video-url-box {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.video-url-box input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #e5e5e7;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: monospace;
+    background: #f8f9fa;
+}
+
+.video-url-box button,
+.action-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.action-btn.primary {
+    padding: 12px 24px;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 12px;
+}
+
+.video-url-box button:hover,
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.download-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.option {
+    padding: 16px;
+    border: 1px solid #e5e5e7;
+    border-radius: 12px;
+    background: #f8f9fa;
+}
+
+.option h4 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.option p {
+    margin: 0 0 12px;
+    color: #86868b;
+    font-size: 14px;
+}
+
+.quick-actions {
+    text-align: center;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* 默认缩略图样式 */
+.default-thumbnail {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: #86868b;
+    border-radius: 12px;
+}
+
+.thumbnail-text {
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+/* 移动端优化 */
+@media (max-width: 480px) {
+    .download-guide-modal .modal-content {
+        margin: 0;
+        border-radius: 16px 16px 0 0;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-height: 85vh;
+    }
+    
+    .modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+    
+    .video-url-box {
+        flex-direction: column;
+    }
+    
+    .video-url-box button {
+        width: 100%;
+    }
+    
+    .download-options {
+        gap: 16px;
+    }
+    
+    .step {
+        gap: 12px;
+    }
+    
+    .step-number {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+}

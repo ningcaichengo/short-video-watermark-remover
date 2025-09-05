@@ -384,14 +384,29 @@ class WatermarkRemover {
         // 存储当前视频数据
         this.currentVideoData = data;
 
-        videoTitle.textContent = data.title;
-        videoAuthor.textContent = `作者: ${data.author}`;
+        videoTitle.textContent = data.title || '未知视频标题';
+        videoAuthor.textContent = `作者: ${data.author || '未知作者'}`;
         
-        if (data.thumbnail) {
+        console.log('缩略图URL:', data.thumbnail);
+        
+        // 处理缩略图显示
+        if (data.thumbnail && data.thumbnail.trim()) {
             videoThumb.src = data.thumbnail;
             videoThumb.style.display = 'block';
+            
+            // 添加图片加载失败处理
+            videoThumb.onerror = () => {
+                console.log('缩略图加载失败，使用默认图片');
+                videoThumb.style.display = 'none';
+                this.showDefaultThumbnail();
+            };
+            
+            videoThumb.onload = () => {
+                console.log('缩略图加载成功');
+            };
         } else {
-            videoThumb.style.display = 'none';
+            console.log('无缩略图URL，显示默认缩略图');
+            this.showDefaultThumbnail();
         }
 
         downloadBtn.onclick = () => this.downloadVideo(data.downloadUrl, data.title);
@@ -407,6 +422,23 @@ class WatermarkRemover {
         }, 100);
     }
 
+    showDefaultThumbnail() {
+        const videoThumb = document.getElementById('videoThumb');
+        const thumbnailContainer = document.querySelector('.video-thumbnail');
+        
+        if (thumbnailContainer) {
+            // 创建默认缩略图
+            thumbnailContainer.innerHTML = `
+                <div class="default-thumbnail">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5,3 19,12 5,21"></polygon>
+                    </svg>
+                    <span class="thumbnail-text">视频</span>
+                </div>
+            `;
+        }
+    }
+
     hideResult() {
         const resultSection = document.getElementById('resultSection');
         resultSection.classList.remove('show');
@@ -417,41 +449,126 @@ class WatermarkRemover {
             const downloadBtn = document.getElementById('downloadBtn');
             const originalText = downloadBtn.querySelector('span').textContent;
             
-            downloadBtn.querySelector('span').textContent = '下载中...';
+            downloadBtn.querySelector('span').textContent = '准备下载...';
             downloadBtn.disabled = true;
 
             // 检测设备类型
             const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
+            // 由于403权限问题，改用代理下载或直接复制链接的方式
             if (isMobile) {
-                // 移动端：直接打开链接，让浏览器处理下载
-                window.open(url, '_blank');
+                // 移动端：显示下载指南
+                this.showMobileDownloadGuide(url);
             } else {
-                // 桌面端：创建下载链接
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${filename || '无水印视频'}.mp4`;
-                link.target = '_blank';
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                // 桌面端：尝试代理下载或复制链接
+                this.showDesktopDownloadOptions(url, filename);
             }
-
-            // 显示下载提示
-            this.showDownloadTip(isMobile);
             
             downloadBtn.querySelector('span').textContent = originalText;
             downloadBtn.disabled = false;
 
         } catch (error) {
             console.error('下载出错:', error);
-            this.showError('下载失败，请重试或右键保存视频');
+            this.showError('下载准备失败，请重试');
             
             const downloadBtn = document.getElementById('downloadBtn');
             downloadBtn.querySelector('span').textContent = '下载无水印视频';
             downloadBtn.disabled = false;
         }
+    }
+
+    showMobileDownloadGuide(url) {
+        // 创建移动端下载指南弹窗
+        const modal = document.createElement('div');
+        modal.className = 'download-guide-modal';
+        modal.innerHTML = `
+            <div class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>📱 移动端下载指南</h3>
+                        <button class="close-btn" onclick="this.closest('.download-guide-modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="download-steps">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <p><strong>复制视频链接</strong></p>
+                                    <div class="video-url-box">
+                                        <input type="text" value="${url}" readonly id="videoUrlToCopy">
+                                        <button onclick="this.previousElementSibling.select();document.execCommand('copy');this.textContent='已复制!';setTimeout(()=>this.textContent='复制',1000)">复制</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <p><strong>打开浏览器新标签页</strong></p>
+                                    <p class="step-desc">粘贴链接到地址栏访问</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <p><strong>长按视频保存</strong></p>
+                                    <p class="step-desc">视频播放后，长按选择"保存视频"</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="action-btn primary" onclick="window.open('${url}', '_blank')">
+                                🚀 直接打开视频
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        
+        // 自动选中URL输入框
+        setTimeout(() => {
+            const urlInput = document.getElementById('videoUrlToCopy');
+            if (urlInput) urlInput.select();
+        }, 100);
+    }
+
+    showDesktopDownloadOptions(url, filename) {
+        // 桌面端下载选项
+        const modal = document.createElement('div');
+        modal.className = 'download-guide-modal';
+        modal.innerHTML = `
+            <div class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>💻 下载选项</h3>
+                        <button class="close-btn" onclick="this.closest('.download-guide-modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="download-options">
+                            <div class="option">
+                                <h4>方法一：右键保存</h4>
+                                <p>点击下方按钮打开视频，然后右键选择"另存为"</p>
+                                <button class="action-btn primary" onclick="window.open('${url}', '_blank')">
+                                    🎥 打开视频页面
+                                </button>
+                            </div>
+                            <div class="option">
+                                <h4>方法二：复制链接</h4>
+                                <p>复制链接到下载工具（如IDM、迅雷等）</p>
+                                <div class="video-url-box">
+                                    <input type="text" value="${url}" readonly id="desktopVideoUrl">
+                                    <button onclick="this.previousElementSibling.select();document.execCommand('copy');this.textContent='已复制!';setTimeout(()=>this.textContent='复制',1000)">复制链接</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
     }
 
     showDownloadTip(isMobile) {
