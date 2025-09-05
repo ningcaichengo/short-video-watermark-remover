@@ -1,0 +1,140 @@
+{
+    "info": {
+        "name": "短视频去水印API测试",
+        "description": "测试各种平台的视频链接去水印功能",
+        "version": "1.0.0"
+    },
+    "item": [
+        {
+            "name": "抖音链接测试",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "User-Agent", 
+                        "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                    }
+                ],
+                "url": {
+                    "raw": "https://api.guijianpan.com/waterRemoveDetail/xxmQsyByAk?ak=31f90c09b9ab4d0daa8a6a957f12a021&link=https://v.douyin.com/ZOqdo9qsYuY",
+                    "protocol": "https",
+                    "host": ["api", "guijianpan", "com"],
+                    "path": ["waterRemoveDetail", "xxmQsyByAk"],
+                    "query": [
+                        {
+                            "key": "ak",
+                            "value": "31f90c09b9ab4d0daa8a6a957f12a021"
+                        },
+                        {
+                            "key": "link",
+                            "value": "https://v.douyin.com/ZOqdo9qsYuY"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "快手链接测试", 
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "User-Agent",
+                        "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                    }
+                ],
+                "url": {
+                    "raw": "https://api.guijianpan.com/waterRemoveDetail/xxmQsyByAk?ak=31f90c09b9ab4d0daa8a6a957f12a021&link={{kuaishou_url}}",
+                    "protocol": "https", 
+                    "host": ["api", "guijianpan", "com"],
+                    "path": ["waterRemoveDetail", "xxmQsyByAk"],
+                    "query": [
+                        {
+                            "key": "ak",
+                            "value": "31f90c09b9ab4d0daa8a6a957f12a021"
+                        },
+                        {
+                            "key": "link",
+                            "value": "{{kuaishou_url}}"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "无效链接测试",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "https://api.guijianpan.com/waterRemoveDetail/xxmQsyByAk?ak=31f90c09b9ab4d0daa8a6a957f12a021&link=https://invalid-url.com",
+                    "protocol": "https",
+                    "host": ["api", "guijianpan", "com"], 
+                    "path": ["waterRemoveDetail", "xxmQsyByAk"],
+                    "query": [
+                        {
+                            "key": "ak",
+                            "value": "31f90c09b9ab4d0daa8a6a957f12a021"
+                        },
+                        {
+                            "key": "link", 
+                            "value": "https://invalid-url.com"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "API密钥错误测试",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "https://api.guijianpan.com/waterRemoveDetail/xxmQsyByAk?ak=invalid_key&link=https://v.douyin.com/ZOqdo9qsYuY",
+                    "protocol": "https",
+                    "host": ["api", "guijianpan", "com"],
+                    "path": ["waterRemoveDetail", "xxmQsyByAk"],
+                    "query": [
+                        {
+                            "key": "ak",
+                            "value": "invalid_key"
+                        },
+                        {
+                            "key": "link",
+                            "value": "https://v.douyin.com/ZOqdo9qsYuY"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "kuaishou_url",
+            "value": "https://kuaishou.com/example",
+            "description": "快手测试链接"
+        }
+    ]
+}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>短视频去水印</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">短视频去水印</h1>
+            <p class="subtitle">支持抖音、快手、小红书等平台</p>
+        </header>
+
+        <main class="main-content">
+            <div class="input-section">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="videoUrl" 
+                        class="url-input" 
+                        placeholder="请粘贴视频链接"
+                        autocomplete="off"
+                    >
+                    <button id="removeBtn" class="remove-btn" disabled>
+                        <span class="btn-text">开始去水印</span>
+                        <div class="loading-spinner"></div>
+                    </button>
+                </div>
+                <div class="tips">
+                    <span class="tip-text">💡 支持分享链接和直链</span>
+                </div>
+            </div>
+
+            <div id="verifyModal" class="verify-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>安全验证</h3>
+                        <button class="close-btn">&times;</button>
+                    </div>
+                    <div class="slider-verify">
+                        <div class="slider-track">
+                            <div class="slider-fill"></div>
+                            <div class="slider-thumb">
+                                <span>››</span>
+                            </div>
+                        </div>
+                        <p class="slider-text">拖动滑块完成验证</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultSection" class="result-section">
+                <div class="result-card">
+                    <div class="video-info">
+                        <div class="video-thumbnail">
+                            <img id="videoThumb" src="" alt="视频缩略图">
+                        </div>
+                        <div class="video-details">
+                            <h3 id="videoTitle" class="video-title"></h3>
+                            <p id="videoAuthor" class="video-author"></p>
+                        </div>
+                    </div>
+                    <div class="download-actions">
+                        <button id="downloadBtn" class="download-btn">
+                            <span>下载无水印视频</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7,10 12,15 17,10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="errorMessage" class="error-message">
+                <div class="error-content">
+                    <span class="error-icon">⚠️</span>
+                    <span class="error-text"></span>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>免费工具 · 快速去水印 · 隐私保护</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
